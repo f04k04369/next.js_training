@@ -1,5 +1,7 @@
+import { GooglePlacesSearchApiResponse } from "@/types";
 import { error } from "console";
 import { unstable_cache } from "next/cache";
+import { transformPlaceResults } from "./utils";
 
 const fetchRamenRestaurantsInner = async () => {
     const url = "https://places.googleapis.com/v1/places:searchNearby";
@@ -9,7 +11,7 @@ const fetchRamenRestaurantsInner = async () => {
     const header = {
         "Content-Type": "application/json",
         "X-Goog-Api-Key":apiKey!,
-        "X-Goog-FieldMask":"places.id,places.displayName,places.types,places.primaryType,places.photos",
+        "X-Goog-FieldMask":"places.id,places.displayName,places.primaryType,places.photos",
     }
 
     const requestBody = {
@@ -40,7 +42,15 @@ const fetchRamenRestaurantsInner = async () => {
         return {error: `NearbySearchリクエスト失敗:${response.status}`}
     }
 
-    return response.json();
+    const data:GooglePlacesSearchApiResponse = await response.json();
+   if(!data.places){
+        return {data: []};
+    } 
+    const nearbyRamenPlaces = data.places;
+
+    
+
+    transformPlaceResults(nearbyRamenPlaces);
 };
 
 export const fetchRamenRestaurants = unstable_cache(
