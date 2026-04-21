@@ -1,5 +1,6 @@
 import CarouselContainer from "@/components/carousel-container";
 import RestaurantCard from "@/components/restaurant-card";
+import RestaurantList from "@/components/restaurant-list";
 import Section from "@/components/section";
 import { fetchRamenRestaurants, fetchRestaurants } from "@/lib/restaurants/api";
 import Image from "next/image";
@@ -10,19 +11,35 @@ export default async function Home() {
 
   return (
     <>
-    {!nerarybyRamenRestaurants ? (
-      <p>{nerarybyRamenRestaurantsError}</p>
-    ): nerarybyRamenRestaurants.length > 0 ? (
-      <Section title="近くのラーメン店">
-      <CarouselContainer slideToShow={4}>
-        {nerarybyRamenRestaurants.map((restaurant, index) => (
-          <RestaurantCard key={index} restaurant={restaurant}/>
-        ))}
-      </CarouselContainer>
-    </Section>
-    ): (
-      <p>近くにラーメン店がありません</p>
-    )}
-        </>
+    {/* レストラン情報表示 */}
+      {!nerarbyRestaurants ? (
+        <p>{nerarybyRamenRestaurantsError}</p>
+      ): nerarbyRestaurants.length > 0 ? (
+        <Section title="近くレストラン" expandedContent={<RestaurantList/>}>
+        <CarouselContainer slideToShow={4}>
+          {nerarbyRestaurants.map((restaurant, index) => (
+            <RestaurantCard key={index} restaurant={restaurant}/>
+          ))}
+        </CarouselContainer>
+      </Section>
+      ): (
+        <p>近くにレストランがありません</p>
+      )}
+      {!nerarybyRamenRestaurants ? (
+        <p>{nerarybyRamenRestaurantsError}</p>
+      ): nerarybyRamenRestaurants.length > 0 ? (
+
+    /* ラーメン店情報表示 */
+        <Section title="近くのラーメン店" expandedContent={<RestaurantList />}>
+        <CarouselContainer slideToShow={4}>
+          {nerarybyRamenRestaurants.map((restaurant, index) => (
+            <RestaurantCard key={index} restaurant={restaurant}/>
+          ))}
+        </CarouselContainer>
+      </Section>
+      ): (
+        <p>近くにラーメン店がありません</p>
+      )}
+    </>
   );
 }

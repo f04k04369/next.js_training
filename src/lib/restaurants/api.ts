@@ -64,8 +64,10 @@ export async function fetchRestaurants() {
         return {data: []};
     }
     const nearbyPlaces = data.places;
+    
+    const matchingPlaces = nearbyPlaces.filter((place) => place.primaryType && desiredTypes.includes(place.primaryType));
 
-    const Restaurants = await transformPlaceResults(nearbyPlaces);
+    const Restaurants = await transformPlaceResults(matchingPlaces);
     console.log("Restaurants", Restaurants)
     return { data: Restaurants }
 }
