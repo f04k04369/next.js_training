@@ -15,7 +15,7 @@ export default async function Home() {
       {!nerarbyRestaurants ? (
         <p>{nerarybyRamenRestaurantsError}</p>
       ): nerarbyRestaurants.length > 0 ? (
-        <Section title="近くレストラン" expandedContent={<RestaurantList/>}>
+        <Section title="近くレストラン" expandedContent={<RestaurantList restaurants={nerarbyRestaurants}/>}>
         <CarouselContainer slideToShow={4}>
           {nerarbyRestaurants.map((restaurant, index) => (
             <RestaurantCard key={index} restaurant={restaurant}/>
@@ -30,7 +30,7 @@ export default async function Home() {
       ): nerarybyRamenRestaurants.length > 0 ? (
 
     /* ラーメン店情報表示 */
-        <Section title="近くのラーメン店" expandedContent={<RestaurantList />}>
+        <Section title="近くのラーメン店" expandedContent={<RestaurantList restaurants={nerarybyRamenRestaurants}/>}>
         <CarouselContainer slideToShow={4}>
           {nerarybyRamenRestaurants.map((restaurant, index) => (
             <RestaurantCard key={index} restaurant={restaurant}/>

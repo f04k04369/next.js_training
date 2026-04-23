@@ -3,7 +3,6 @@ import { transformPlaceResults } from "./utils";
 
 export async function fetchRestaurants() {
     "use cache";
-
     const url = "https://places.googleapis.com/v1/places:searchNearby";
 
     const apiKey = process.env.GOOGLE_API_KEY
