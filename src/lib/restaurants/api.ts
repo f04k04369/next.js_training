@@ -71,6 +71,60 @@ export async function fetchRestaurants() {
     return { data: Restaurants }
 }
 
+// カテゴリ検索機能
+export async function fetchCategoryRestaurants(category: string) {
+    "use cache";
+
+    const url = "https://places.googleapis.com/v1/places:searchNearby";
+
+    const apiKey = process.env.GOOGLE_API_KEY
+
+    const header = {
+        "Content-Type": "application/json",
+        "X-Goog-Api-Key":apiKey!,
+        "X-Goog-FieldMask":"places.id,places.displayName,places.primaryType,places.photos",
+    }
+
+    const requestBody = {
+        "includedPrimaryTypes": [category],
+        "maxResultCount": 10,
+        "locationRestriction": {
+            "circle": {
+            "center": {
+                "latitude": 34.2895631,//香川
+                "longitude": 134.0473344},
+            "radius": 10000.0
+            }
+        },
+        languageCode:"ja",
+        rankPreference: "DISTANCE",
+    }
+
+    const response = await fetch(url, {
+        method: "POST",
+        body: JSON.stringify(requestBody),
+        headers: header,
+        next: {revalidate: 86400}
+    });
+
+    if(!response.ok){
+        const errorData = response.json();
+        console.error(errorData);
+        return {error: `NearbySearchリクエスト失敗:${response.status}`}
+    }
+
+    const data:GooglePlacesSearchApiResponse = await response.json();
+    if(!data.places){
+        return {data: []};
+    }
+    const categoryPlaces = data.places;
+
+    const categoryRestaurants = await transformPlaceResults(categoryPlaces);
+    console.log(categoryRestaurants)
+    return { data: categoryRestaurants }
+}
+
+// 近くのラーメン屋を検索
 export async function fetchRamenRestaurants() {
     "use cache";
 
