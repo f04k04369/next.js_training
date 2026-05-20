@@ -1,5 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
+import { useDebouncedCallback } from "use-debounce";
+import { v4 as uuidv4 } from "uuid";
 
 import {
   Command,
@@ -12,19 +14,22 @@ import {
 export default function PlaceSearchBar() {
   const [open, setOpen] = useState(false);
   const [inputText, setInputText] = useState("");
-  const fetchSuggestions = () => {
+  const [sessionToken, setSessionToken] = useState(uuidv4());
+  const fetchSuggestions = useDebouncedCallback(async (input:string) => {
+    console.log(input);
     try {
+      const response = await fetch(`/api/restaurant/autocomplete?input=${input}&sessionToken=${sessionToken}`);
     } catch (error) {
       console.error(error);
     }
-  };
+  },500);
   useEffect(() => {
     if (!inputText.trim()) {
       setOpen(false);
       return;
     }
     setOpen(true);
-    fetchSuggestions();
+    fetchSuggestions(inputText);
   }, [inputText]);
   const handleBlur = () => {
     setOpen(false);
