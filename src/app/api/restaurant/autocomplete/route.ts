@@ -1,3 +1,4 @@
+import { GooglePlacesAutoCompleteApiResponse, RestaurantSuggestion } from "@/types";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
@@ -25,6 +26,7 @@ export async function GET(request: NextRequest) {
     };
 
     const requestBody = {
+      includeQueryPredictions: true,
       input: input,
       sessionToken: sessionToken,
       includedPrimaryTypes: ["restaurant"],
@@ -38,23 +40,53 @@ export async function GET(request: NextRequest) {
         },
       },
       languageCode: "ja",
-      includedRegionCodes: ["JP"],
+      //   includedRegionCodes: ["JP"],
+      regionCode: "JP",
     };
 
     const response = await fetch(url, {
       method: "POST",
       body: JSON.stringify(requestBody),
       headers: header,
-      next: { revalidate: 86400 },
     });
 
     if (!response.ok) {
       const errorData = response.json();
       console.error(errorData);
-      return { error: `NearbySearchリクエスト失敗:${response.status}` };
+      return { error: `AutoCompleteリクエスト失敗:${response.status}` };
     }
-    const data = await response.json();
-    console.log("data", data);
+    const data: GooglePlacesAutoCompleteApiResponse = await response.json();
+    console.log("data", JSON.stringify(data, null, 2));
+
+    const suggestions = data.suggestions ?? [];
+
+    const results = suggestions
+      .map((suggestion) => {
+        if (
+          suggestion.placePrediction &&
+          suggestion.placePrediction.placeId &&
+          suggestion.placePrediction.structuredFormat?.mainText?.text
+        ) {
+          return {
+            type: "placePrediction",
+            placeId: suggestion.placePrediction?.placeId,
+            placeName:
+              suggestion.placePrediction.structuredFormat?.mainText?.text,
+          };
+        } else if (
+          suggestion.queryPrediction &&
+          suggestion.queryPrediction.text?.text
+        ) {
+          return {
+            type: "queryPrediction",
+            query: suggestion.queryPrediction?.text?.text,
+          };
+        }
+      })
+      .filter((suggestion):suggestion is RestaurantSuggestion => suggestion !== undefined);
+
+
+    return NextResponse.json(results);
   } catch (error) {
     console.error(error);
     return NextResponse.json(
@@ -62,6 +94,4 @@ export async function GET(request: NextRequest) {
       { status: 500 },
     );
   }
-
-  return NextResponse.json("success");
 }

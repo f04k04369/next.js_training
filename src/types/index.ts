@@ -1,26 +1,56 @@
 export interface Restaurant {
-    id: string,
-    restaurantName?: string,
-    primaryType?: string,
-    photoUrl?: string
+  id: string;
+  restaurantName?: string;
+  primaryType?: string;
+  photoUrl?: string;
 }
 
 export interface GooglePlacesSearchApiResponse {
-    places?: PlaceSearchResult[];
+  places?: PlaceSearchResult[];
 }
 
 export interface PlaceSearchResult {
-    id: string,
-    displayName?: {
-        languageCode?: string,
-        text?: string
-    };
-    primaryType?: string,
-    photos?: PlacePhoto [
-
-    ];
+  id: string;
+  displayName?: {
+    languageCode?: string;
+    text?: string;
+  };
+  primaryType?: string;
+  photos?: PlacePhoto[];
 }
 
 export interface PlacePhoto {
-    name?: string
-} 
+  name?: string;
+}
+
+export interface GooglePlacesAutoCompleteApiResponse {
+  suggestions?: PlaceAutocompleteResult[];
+}
+
+export interface PlaceAutocompleteResult {
+  placePrediction?: {
+    place?: string;
+    placeId?: string;
+    structuredFormat?: {
+      mainText?: {
+        text?: string;
+      };
+    };
+  };
+  queryPrediction?: {
+    text?: {
+      text?: string;
+    };
+  };
+}
+
+export type RestaurantSuggestion =
+  | {
+      type: "placePrediction";
+      placeId: string;
+      placeName: string;
+    }
+  | {
+      type: "queryPrediction";
+      query: string;
+    };
