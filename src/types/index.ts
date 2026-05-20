@@ -47,7 +47,7 @@ export interface PlaceAutocompleteResult {
 export type RestaurantSuggestion =
   | {
       type: "placePrediction";
-      placeId: string;
+      placeId?: string;
       placeName: string;
     }
   | {

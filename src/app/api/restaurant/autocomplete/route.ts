@@ -61,29 +61,30 @@ export async function GET(request: NextRequest) {
     const suggestions = data.suggestions ?? [];
 
     const results = suggestions
-      .map((suggestion) => {
-        if (
-          suggestion.placePrediction &&
-          suggestion.placePrediction.placeId &&
-          suggestion.placePrediction.structuredFormat?.mainText?.text
-        ) {
+      .map((suggestion): RestaurantSuggestion | undefined => {
+        const placeName =
+          suggestion.placePrediction?.structuredFormat?.mainText?.text;
+        if (placeName) {
+          const placeId = suggestion.placePrediction?.placeId;
           return {
             type: "placePrediction",
-            placeId: suggestion.placePrediction?.placeId,
-            placeName:
-              suggestion.placePrediction.structuredFormat?.mainText?.text,
+            placeName,
+            ...(placeId ? { placeId } : {}),
           };
-        } else if (
-          suggestion.queryPrediction &&
-          suggestion.queryPrediction.text?.text
-        ) {
+        }
+
+        const query = suggestion.queryPrediction?.text?.text;
+        if (query) {
           return {
             type: "queryPrediction",
-            query: suggestion.queryPrediction?.text?.text,
+            query,
           };
         }
       })
-      .filter((suggestion):suggestion is RestaurantSuggestion => suggestion !== undefined);
+      .filter(
+        (suggestion): suggestion is RestaurantSuggestion =>
+          suggestion !== undefined,
+      );
 
 
     return NextResponse.json(results);

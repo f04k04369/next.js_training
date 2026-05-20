@@ -11,14 +11,19 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { RestaurantSuggestion } from "@/types";
-import { MapPinIcon, SearchIcon } from "lucide-react";
+import { LoaderCircle, MapPinIcon, SearchIcon } from "lucide-react";
 
 export default function PlaceSearchBar() {
   const [open, setOpen] = useState(false);
   const [inputText, setInputText] = useState("");
   const [sessionToken, setSessionToken] = useState(uuidv4());
   const [suggestions, setSuggestions] = useState<RestaurantSuggestion[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   const fetchSuggestions = useDebouncedCallback(async (input: string) => {
+    if (!input.trim()) {
+      setSuggestions([]);
+      return;
+    }
     console.log(input);
     try {
       const response = await fetch(
@@ -29,13 +34,18 @@ export default function PlaceSearchBar() {
       setSuggestions(data);
     } catch (error) {
       console.error(error);
+    } finally {
+      setIsLoading(false);
     }
   }, 500);
   useEffect(() => {
     if (!inputText.trim()) {
       setOpen(false);
+      setSuggestions([]);
       return;
     }
+    setIsLoading(true);
+    setIsLoading(true);
     setOpen(true);
     fetchSuggestions(inputText);
   }, [inputText]);
@@ -61,19 +71,23 @@ export default function PlaceSearchBar() {
       {open && (
         <div className="relative">
           <CommandList className="absolute bg-background w-full shadow-md rounded-lg">
-            <CommandEmpty>No results found.</CommandEmpty>
-            {suggestions.map((suggestion) => {
+            <CommandEmpty>
+              <div className="flex items-center justify-center">
+                {isLoading ? <LoaderCircle className="animate-spin"/> : "レストランが見当たりません"}F
+              </div>
+            </CommandEmpty>
+            {suggestions.map((suggestion, index) => {
               const label =
                 suggestion.type === "placePrediction"
                   ? suggestion.placeName
                   : suggestion.query;
               const value =
                 suggestion.type === "placePrediction"
-                  ? suggestion.placeId
+                  ? (suggestion.placeId ?? `place-${index}`)
                   : suggestion.query;
 
               return (
-                <CommandItem key={value} value={value} className="padding-5">
+                <CommandItem key={value} value={value} className="p-5">
                   {suggestion.type === "queryPrediction" ? (
                     <SearchIcon />
                   ) : (
