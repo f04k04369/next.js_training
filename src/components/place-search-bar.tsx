@@ -22,7 +22,10 @@ import { useRouter } from "next/navigation";
 export default function PlaceSearchBar() {
   const [open, setOpen] = useState(false);
   const [inputText, setInputText] = useState("");
-  const [sessionToken, setSessionToken] = useState(uuidv4());
+  const [sessionToken, setSessionToken] = useState("");
+  useEffect(() => {
+    setSessionToken(uuidv4());
+  }, []);
   const [suggestions, setSuggestions] = useState<RestaurantSuggestion[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -31,7 +34,7 @@ export default function PlaceSearchBar() {
   const router = useRouter();
 
   const fetchSuggestions = useDebouncedCallback(async (input: string) => {
-    if (!input.trim()) {
+    if (!input.trim() || !sessionToken) {
       setSuggestions([]);
       return;
     }
@@ -62,11 +65,11 @@ export default function PlaceSearchBar() {
       setSuggestions([]);
       return;
     }
-    setIsLoading(true);
+    if (!sessionToken) return;
     setIsLoading(true);
     setOpen(true);
     fetchSuggestions(inputText);
-  }, [inputText]);
+  }, [inputText, sessionToken]);
 
   const handleBlur = () => {
     if (clickedOnItem.current) {
@@ -91,26 +94,36 @@ export default function PlaceSearchBar() {
           `/restaurant/${suggestion.placeId}?sessionToken=${sessionToken}`,
         );
       }
-    } else {
-      // 検索結果ページに移動
-      router.push(`/search?restaurant=${encodeURIComponent(suggestion.query)}`);
+      setSessionToken(uuidv4());
+    } else if (suggestion.query.trim()) {
+      router.push(
+        `/search?restaurant=${encodeURIComponent(suggestion.query.trim())}`,
+      );
     }
   };
   
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if(!inputText.trim()) return;
-    if(e.key === "Enter") {
-      router.push(`/search?restaurant=${inputText}`);
+    if (e.key !== "Enter") return;
+    setOpen(false);
+    if (!inputText.trim()) {
+      setOpen(false);
+      router.push("/");
+      return;
     }
-  }
+
+    router.push(
+      `/search?restaurant=${encodeURIComponent(inputText.trim())}`,
+    );
+  };
 
   return (
-    <Command onKeyDown={handleKeyDown} className="overflow-visible bg-muted" shouldFilter={false}>
+    <Command className="overflow-visible bg-muted" shouldFilter={false}>
       <CommandInput
         value={inputText}
         placeholder="Type a command or search..."
         className=""
         onValueChange={setInputText}
+        onKeyDown={handleKeyDown}
         onBlur={handleBlur}
         onFocus={handleFocus}
       />

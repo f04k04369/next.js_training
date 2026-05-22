@@ -71,6 +71,58 @@ export async function fetchRestaurants() {
     return { data: Restaurants }
 }
 
+
+// キーワード検索
+export async function fetchRestaurantsByKeyword(query: string) {
+    "use cache";
+
+    const url = "https://places.googleapis.com/v1/places:searchText";
+
+    const apiKey = process.env.GOOGLE_API_KEY
+
+    const header = {
+        "Content-Type": "application/json",
+        "X-Goog-Api-Key":apiKey!,
+        "X-Goog-FieldMask":"places.id,places.displayName,places.primaryType,places.photos",
+    }
+
+    const requestBody = {
+        textQuery: query,
+        maxResultCount: 10,
+        locationBias: {
+            circle: {
+            center: {
+                latitude: 34.2895631,//香川
+                longitude: 134.0473344},
+            radius: 10000.0
+            }
+        },
+        languageCode: "ja",
+    }
+
+    const response = await fetch(url, {
+        method: "POST",
+        body: JSON.stringify(requestBody),
+        headers: header,
+        next: {revalidate: 86400}
+    });
+
+    if(!response.ok){
+        const errorData = await response.json();
+        console.error(errorData);
+        return {error: `TextSearchリクエスト失敗:${response.status}`}
+    }
+
+    const data:GooglePlacesSearchApiResponse = await response.json();
+    if(!data.places){
+        return {data: []};
+    }
+    const textSearchPlaces = data.places;
+
+    const restaurants = await transformPlaceResults(textSearchPlaces);
+    return { data: restaurants }
+}
+
 // カテゴリ検索機能
 export async function fetchCategoryRestaurants(category: string) {
     "use cache";

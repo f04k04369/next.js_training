@@ -21,7 +21,9 @@ function Header() {
         </div>
         <div>住所を選択</div>
         <div className="flex-1">
-          <PlaceSearchBar />
+          <Suspense fallback={<div className="h-9 rounded-md bg-muted animate-pulse" />}>
+            <PlaceSearchBar />
+          </Suspense>
         </div>
         <div>カート</div>
       </div>
