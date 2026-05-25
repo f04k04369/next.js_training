@@ -1,5 +1,8 @@
-
-import { GooglePlacesAutoCompleteApiResponse, RestaurantSuggestion } from "@/types";
+import {
+  AddressSuggestion,
+  GooglePlacesAutoCompleteApiResponse,
+  RestaurantSuggestion,
+} from "@/types";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
@@ -8,7 +11,10 @@ export async function GET(request: NextRequest) {
   const sessionToken = searchParams.get("sessionToken");
 
   if (!input) {
-    return NextResponse.json({ error: "文字を入力してください" }, { status: 400 });
+    return NextResponse.json(
+      { error: "文字を入力してください" },
+      { status: 400 },
+    );
   }
   if (!sessionToken) {
     return NextResponse.json(
@@ -27,10 +33,10 @@ export async function GET(request: NextRequest) {
     };
 
     const requestBody = {
-    //   includeQueryPredictions: true,
+      //   includeQueryPredictions: true,
       input: input,
       sessionToken: sessionToken,
-    //   includedPrimaryTypes: ["restaurant"],
+      //   includedPrimaryTypes: ["restaurant"],
       locationBias: {
         circle: {
           center: {
@@ -56,8 +62,8 @@ export async function GET(request: NextRequest) {
       console.error(errorData);
       return NextResponse.json(
         { error: `Autocompleteリクエスト失敗:${response.status}` },
-        { status: 500}
-    )
+        { status: 500 },
+      );
     }
     const data: GooglePlacesAutoCompleteApiResponse = await response.json();
     console.log("data", JSON.stringify(data, null, 2));
@@ -65,31 +71,23 @@ export async function GET(request: NextRequest) {
     const suggestions = data.suggestions ?? [];
 
     const results = suggestions
-      .map((suggestion): RestaurantSuggestion | undefined => {
-        const placeName =
-          suggestion.placePrediction?.structuredFormat?.mainText?.text;
-        if (placeName) {
-          const placeId = suggestion.placePrediction?.placeId;
-          return {
-            type: "placePrediction",
-            placeName,
-            ...(placeId ? { placeId } : {}),
-          };
-        }
-
-        const query = suggestion.queryPrediction?.text?.text;
-        if (query) {
-          return {
-            type: "queryPrediction",
-            query,
-          };
-        }
+      .map((suggestion) => {
+        return {
+          placeId: suggestion.placePrediction?.placeId,
+          placeName:
+            suggestion.placePrediction?.structuredFormat?.mainText?.text,
+          address_text:
+            suggestion.placePrediction?.structuredFormat?.secondaryText?.text,
+        };
       })
       .filter(
-        (suggestion): suggestion is RestaurantSuggestion =>
-          suggestion !== undefined,
+        (suggestion): suggestion is AddressSuggestion =>
+          !!suggestion.placeId &&
+          !!suggestion.placeName &&
+          !!suggestion.address_text,
       );
 
+    console.log("AddressSuggestions", results);
 
     return NextResponse.json(results);
   } catch (error) {

@@ -35,6 +35,9 @@ export interface PlaceAutocompleteResult {
       mainText?: {
         text?: string;
       };
+      secondaryText?: {
+        text?: string;
+      };
     };
   };
   queryPrediction?: {
@@ -54,3 +57,9 @@ export type RestaurantSuggestion =
       type: "queryPrediction";
       query: string;
     };
+
+export interface AddressSuggestion {
+  placeId: string;
+  placeName: string;
+  address_text: string;
+}
