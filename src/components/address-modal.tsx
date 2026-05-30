@@ -21,6 +21,7 @@ import { useDebouncedCallback } from "use-debounce";
 import { v4 as uuidv4 } from "uuid";
 import { AddressSuggestion } from "@/types";
 import { AlertCircle, LoaderCircle, MapPin } from "lucide-react";
+import { selectSuggestionAction } from "@/app/(private)/actions/addressActions";
 
 export default function AddressModal() {
   const [inputText, setInputText] = useState("");
@@ -29,6 +30,8 @@ export default function AddressModal() {
   useEffect(() => {
     setSessionToken(uuidv4());
   }, []);
+  
+  
   const [suggestions, setSuggestions] = useState<AddressSuggestion[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -68,6 +71,18 @@ export default function AddressModal() {
     setIsLoading(true);
     fetchSuggestions(inputText);
   }, [inputText, sessionToken]);
+  
+  const handleSelectSuggestion = async (suggestion: AddressSuggestion) => {
+    try {
+      await selectSuggestionAction(suggestion, sessionToken );
+      setSessionToken(uuidv4());
+
+    } catch (error) {
+      "予期せぬエラーが発生しました"
+    }
+    // serverActions呼び出し
+    
+  }
 
   return (
     <Dialog>
@@ -105,7 +120,7 @@ export default function AddressModal() {
                   </div>
                 </CommandEmpty>
                 {suggestions.map((suggestion) => (
-                  <CommandItem key={suggestion.placeId} className="p-5">
+                  <CommandItem onSelect={() => handleSelectSuggestion(suggestion)} key={suggestion.placeId} className="p-5">
                     <MapPin />
                     <div>
                       <p className="font-bold">{suggestion.placeName}</p>
@@ -117,6 +132,7 @@ export default function AddressModal() {
                 ))}
               </>
             ) : (
+            // 登録済み住所
               <>
                 <h3 className="text-lg font-bold mb-2">保存済みの住所</h3>
                 <CommandItem className="p-5">Calendar</CommandItem>

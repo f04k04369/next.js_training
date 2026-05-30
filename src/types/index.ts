@@ -47,6 +47,13 @@ export interface PlaceAutocompleteResult {
   };
 }
 
+export interface GooglePlacesDetailsApiResponse {
+  location?: {
+    latitude?: number;
+    longitude?: number;
+  };
+}
+
 export type RestaurantSuggestion =
   | {
       type: "placePrediction";
@@ -62,4 +69,11 @@ export interface AddressSuggestion {
   placeId: string;
   placeName: string;
   address_text: string;
+}
+
+export interface PlaceDetailsAll {
+  location?: {
+    latitude?: number;
+    longitude?: number;
+  }
 }
